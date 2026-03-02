@@ -1,11 +1,24 @@
-import React from 'react'
+import MapSelector from "../components/Map/MapSelector";
+import { useState } from "react";
 
-function Advisory() {
+const Advisory = () => {
+  const [fieldData, setFieldData] = useState(null);
+
+  const handleFieldSelect = (geoJSON) => {
+    setFieldData(geoJSON);
+  };
+
   return (
     <div>
-      ad
-    </div>
-  )
-}
+      <h1 className="m-5">Select Your Field</h1>
 
-export default Advisory
+      <MapSelector onFieldSelect={handleFieldSelect} />
+
+      {fieldData && (
+        <pre>{JSON.stringify(fieldData, null, 2)}</pre>
+      )}
+    </div>
+  );
+};
+
+export default Advisory;
