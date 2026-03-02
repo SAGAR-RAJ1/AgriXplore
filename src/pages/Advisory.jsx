@@ -10,7 +10,8 @@ const Advisory = () => {
 
   return (
     <div>
-      <h1 className="m-5">Select Your Field</h1>
+      <b><h1 className="m-5">Select Your Field</h1></b>
+      
 
       <MapSelector onFieldSelect={handleFieldSelect} />
 
