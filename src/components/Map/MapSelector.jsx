@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, FeatureGroup } from "react-leaflet";
 import { EditControl } from "react-leaflet-draw";
 import { useRef } from "react";
+import L from "leaflet";
 
 
 //Code hmko v nhi pta tumko v nhi pata bhul jao
@@ -9,16 +10,51 @@ import { useRef } from "react";
 const MapSelector = ({ onFieldSelect }) => {
   const featureGroupRef = useRef(null);
 
-  const handleCreated = (e) => {
-    const layer = e.layer;
-    const geoJSON = layer.toGeoJSON();
+  // const handleCreated = (e) => {
+  //   const layer = e.layer;
+  //   const geoJSON = layer.toGeoJSON();
     
-    console.log("Selected Field Coordinates:", geoJSON);
+  //   console.log("Selected Field Coordinates:", geoJSON);
 
-    if (onFieldSelect) {
-      onFieldSelect(geoJSON);
-    }
-  };
+  //   if (onFieldSelect) {
+  //     onFieldSelect(geoJSON);
+  //   }
+  // };
+  const handleCreated = (e) => {
+  const layer = e.layer;
+  const geoJSON = layer.toGeoJSON();
+
+  const coordinates = geoJSON.geometry.coordinates[0];
+
+  let latSum = 0;
+  let lonSum = 0;
+
+  coordinates.forEach(coord => {
+    lonSum += coord[0];
+    latSum += coord[1];
+  });
+
+  const centerLon = lonSum / coordinates.length;
+  const centerLat = latSum / coordinates.length;
+
+  // Get polygon latlngs from leaflet layer
+  const latlngs = layer.getLatLngs()[0];
+
+  // Calculate geodesic area (in square meters)
+  const area = L.GeometryUtil.geodesicArea(latlngs);
+  const areaText = `${area.toFixed(2)} m²`;
+
+  console.log("Center:", centerLat, centerLon);
+  console.log("Area:", areaText);
+
+  if (onFieldSelect) {
+    onFieldSelect({
+      "Centre-latitude": centerLat,
+      "Centre-longitude": centerLon,
+      "Area": areaText
+    });
+  }
+};
 
   return (
     <MapContainer
