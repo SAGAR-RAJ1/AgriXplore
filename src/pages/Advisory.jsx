@@ -4,23 +4,48 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Advisory = () => {
-  const { location } = useGlobalLocation();
+  const { location, setLocation } = useGlobalLocation();
   const navigate = useNavigate();
 
 useEffect(() => {
+  let timer;
+
   if (location) {
-    setTimeout(() => {
+    timer = setTimeout(() => {
       navigate("/dashboard");
-    }, 1000); // 1 second delay
+    }, 2000);
   }
+
+  return () => {
+    if (timer) clearTimeout(timer);
+  };
 }, [location, navigate]);
 
   return (
     <div>
-     {!location && <h1 className="m-5">Select Your Field</h1>}
+      {!location && <h1 className="m-5">Select Your Field</h1>}
 
       {!location && <MapSelector />}
-      {location && <p style={{ padding: "20px" }}>Processing your field... 🌾</p>}
+
+      {location && (
+        <div style={{ padding: "20px" }}>
+          <p>Processing your field... 🌾</p>
+          <button
+            onClick={() => {
+              setLocation(null);
+              navigate("/advisory");
+            }}
+            style={{
+              marginTop: "10px",
+              padding: "8px 12px",
+              cursor: "pointer",
+              border: "black 1px solid",
+            }}
+          >
+            Change Location
+          </button>
+        </div>
+      )}
     </div>
   );
 };
