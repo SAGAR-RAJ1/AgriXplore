@@ -1,25 +1,20 @@
 import MapSelector from "../components/Map/MapSelector";
 import { useGlobalLocation } from "../context/LocationContext";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Advisory = () => {
-  const { location, setLocation } = useGlobalLocation();
+  const {
+    location,
+    setLocation,
+    crop,
+    setCrop,
+    soil,
+    setSoil,
+    water,
+    setWater,
+    clearAdvisoryInputs,
+  } = useGlobalLocation();
   const navigate = useNavigate();
-
-useEffect(() => {
-  let timer;
-
-  if (location) {
-    timer = setTimeout(() => {
-      navigate("/dashboard");
-    }, 2000);
-  }
-
-  return () => {
-    if (timer) clearTimeout(timer);
-  };
-}, [location, navigate]);
 
   return (
     <div>
@@ -29,11 +24,54 @@ useEffect(() => {
 
       {location && (
         <div style={{ padding: "20px" }}>
-          <p>Processing your field... 🌾</p>
+          <h3>Field Selected ✅</h3>
+
+          <div style={{ marginTop: "15px" }}>
+            <label>Crop:</label>
+            <select value={crop} onChange={(e) => setCrop(e.target.value)}>
+              <option value="">Select</option>
+              <option>Rice</option>
+              <option>Wheat</option>
+              <option>Maize</option>
+            </select>
+          </div>
+
+          <div style={{ marginTop: "10px" }}>
+            <label>Soil Type:</label>
+            <select value={soil} onChange={(e) => setSoil(e.target.value)}>
+              <option value="">Select</option>
+              <option>Clay</option>
+              <option>Sandy</option>
+              <option>Loamy</option>
+            </select>
+          </div>
+
+          <div style={{ marginTop: "10px" }}>
+            <label>Water Availability:</label>
+            <select value={water} onChange={(e) => setWater(e.target.value)}>
+              <option value="">Select</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+            </select>
+          </div>
+
+          <button
+            style={{
+              marginTop: "20px",
+              padding: "10px 15px",
+              cursor: "pointer",
+            }}
+            onClick={() => navigate("/dashboard")}
+            disabled={!crop || !soil || !water}
+          >
+            Get Advisory
+          </button>
+
           <button
             onClick={() => {
               setLocation(null);
-              navigate("/advisory");
+              clearAdvisoryInputs();
             }}
             style={{
               marginTop: "10px",

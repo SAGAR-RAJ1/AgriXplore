@@ -4,7 +4,7 @@ import { useGlobalLocation } from "../context/LocationContext";
 
 function Dashboard() {
   const [weather, setWeather] = useState(null);
-  const { location } = useGlobalLocation();
+  const { location, crop, soil, water } = useGlobalLocation();
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -28,6 +28,12 @@ function Dashboard() {
       {weather && (
         <div style={{ padding: "20px" }}>
           <h2>Weather Information</h2>
+          <h3 style={{ marginTop: "16px" }}>Selected Advisory Inputs</h3>
+          <p>Crop: {crop || "Not selected"}</p>
+          <p>Soil Type: {soil || "Not selected"}</p>
+          <p>Water Availability: {water || "Not selected"}</p>
+
+          <h3 style={{ marginTop: "16px" }}>Current Weather</h3>
           <p>Temperature: {weather.temp} °C</p>
           <p>Humidity: {weather.humidity} %</p>
           <p>Wind Speed: {weather.windSpeed} m/s</p>

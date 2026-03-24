@@ -33,13 +33,11 @@ const MapSelector = () => {
     const area = L.GeometryUtil.geodesicArea(latlngs);
     const areaText = `${area.toFixed(2)} m²`;
 
-    const selectedData = {
+    setLocation({
       lat: centerLat,
       lon: centerLon,
       area: areaText,
-    };
-
-    setLocation(selectedData);
+    });
   };
 
   return (
@@ -49,7 +47,7 @@ const MapSelector = () => {
       style={{ height: "75vh", width: "100%" }}
     >
       <TileLayer
-        attribution='&copy; OpenStreetMap contributors'
+        attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
