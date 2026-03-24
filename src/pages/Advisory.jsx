@@ -12,9 +12,21 @@ const Advisory = () => {
     setSoil,
     water,
     setWater,
+    advisoryMode,
+    setAdvisoryMode,
+    sowingDate,
+    setSowingDate,
     clearAdvisoryInputs,
   } = useGlobalLocation();
   const navigate = useNavigate();
+
+  const isMonitoring = advisoryMode === "monitoring";
+  const canProceed =
+    !!crop &&
+    !!soil &&
+    !!water &&
+    !!advisoryMode &&
+    (!isMonitoring || !!sowingDate);
 
   return (
     <div>
@@ -56,6 +68,44 @@ const Advisory = () => {
             </select>
           </div>
 
+          <div style={{ marginTop: "10px" }}>
+            <label style={{ marginRight: "10px" }}>Advisory Type:</label>
+            <label style={{ marginRight: "10px" }}>
+              <input
+                type="radio"
+                name="advisoryMode"
+                value="suggest"
+                checked={advisoryMode === "suggest"}
+                onChange={(e) => {
+                  setAdvisoryMode(e.target.value);
+                  setSowingDate("");
+                }}
+              />{" "}
+              Suggest
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="advisoryMode"
+                value="monitoring"
+                checked={advisoryMode === "monitoring"}
+                onChange={(e) => setAdvisoryMode(e.target.value)}
+              />{" "}
+              Monitoring
+            </label>
+          </div>
+
+          {isMonitoring && (
+            <div style={{ marginTop: "10px" }}>
+              <label>Date Sowed:</label>
+              <input
+                type="date"
+                value={sowingDate}
+                onChange={(e) => setSowingDate(e.target.value)}
+              />
+            </div>
+          )}
+
           <button
             style={{
               marginTop: "20px",
@@ -63,7 +113,7 @@ const Advisory = () => {
               cursor: "pointer",
             }}
             onClick={() => navigate("/dashboard")}
-            disabled={!crop || !soil || !water}
+            disabled={!canProceed}
           >
             Get Advisory
           </button>
