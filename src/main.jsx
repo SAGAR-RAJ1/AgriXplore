@@ -5,11 +5,14 @@ import './index.css'
 import App from './App.jsx'
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
+import { LocationProvider } from "./context/LocationContext";
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+
     <BrowserRouter>
+    <LocationProvider>
       <App />
+    </LocationProvider>
     </BrowserRouter>
-  </StrictMode>,
+
 )

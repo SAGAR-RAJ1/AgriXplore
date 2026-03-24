@@ -1,23 +1,26 @@
 import MapSelector from "../components/Map/MapSelector";
-import { useState } from "react";
+import { useGlobalLocation } from "../context/LocationContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Advisory = () => {
-  const [fieldData, setFieldData] = useState(null);
+  const { location } = useGlobalLocation();
+  const navigate = useNavigate();
 
-  const handleFieldSelect = (geoJSON) => {
-    setFieldData(geoJSON);
-  };
+useEffect(() => {
+  if (location) {
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 1000); // 1 second delay
+  }
+}, [location, navigate]);
 
   return (
     <div>
-      <b><h1 className="m-5">Select Your Field</h1></b>
-      
+     {!location && <h1 className="m-5">Select Your Field</h1>}
 
-      <MapSelector onFieldSelect={handleFieldSelect} />
-
-      {fieldData && (
-        <pre>{JSON.stringify(fieldData, null, 2)}</pre>
-      )}
+      {!location && <MapSelector />}
+      {location && <p style={{ padding: "20px" }}>Processing your field... 🌾</p>}
     </div>
   );
 };

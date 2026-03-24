@@ -1,30 +1,44 @@
-const Dashboard = () => {
+import { getWeather } from "../services/weatherService";
+import { useState, useEffect } from "react";
+import { useGlobalLocation } from "../context/LocationContext";
+
+function Dashboard() {
+  const [weather, setWeather] = useState(null);
+  const { location } = useGlobalLocation();
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      if (!location) return;
+
+      const weatherData = await getWeather(location.lat, location.lon);
+      setWeather(weatherData);
+    };
+
+    fetchWeather();
+  }, [location]);
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h2 className="text-3xl font-bold text-green-700 mb-8">
-        Agriculture Dashboard
-      </h2>
+    <div>
+      {!location && (
+        <p style={{ padding: "20px" }}>
+          Please select a field from Advisory page.
+        </p>
+      )}
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h3 className="font-semibold text-gray-700">Weather</h3>
-          <p className="text-2xl mt-2">28°C</p>
-          <p className="text-gray-500">Partly Cloudy</p>
+      {weather && (
+        <div style={{ padding: "20px" }}>
+          <h2>Weather Information</h2>
+          <p>Temperature: {weather.temp} °C</p>
+          <p>Humidity: {weather.humidity} %</p>
+          <p>Wind Speed: {weather.windSpeed} m/s</p>
+          <p>Condition: {weather.condition}</p>
+          <p>
+            Location: {weather.city}, {weather.country}
+          </p>
         </div>
-
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h3 className="font-semibold text-gray-700">Recommended Crop</h3>
-          <p className="text-2xl mt-2">Rice</p>
-          <p className="text-gray-500">High yield potential</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h3 className="font-semibold text-gray-700">Yield Estimate</h3>
-          <p className="text-2xl mt-2">4.5 tons/hectare</p>
-        </div>
-      </div>
+      )}
     </div>
   );
-};
+}
 
 export default Dashboard;
