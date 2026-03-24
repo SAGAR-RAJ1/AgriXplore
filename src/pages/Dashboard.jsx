@@ -1,24 +1,25 @@
-import { getWeather } from "../services/weatherService";
+import { getForecast } from "../services/weatherService";
 import { useState, useEffect } from "react";
 import { useGlobalLocation } from "../context/LocationContext";
 
 function Dashboard() {
-  const [weather, setWeather] = useState(null);
+  const [forecast, setForecast] = useState([]);
   const { location, crop, soil, water,advisoryMode ,sowingDate} = useGlobalLocation();
 
   useEffect(() => {
-    const fetchWeather = async () => {
+    const fetchData = async () => {
       if (!location) return;
 
-      const weatherData = await getWeather(location.lat, location.lon);
-      setWeather(weatherData);
+      const forecastData = await getForecast(location.lat, location.lon);
+
+      setForecast(forecastData);
     };
 
-    fetchWeather();
+    fetchData();
   }, [location]);
 
   const getRecommendation = () => {
-    if (!location || !crop || !weather) return null;
+    if (!location || !crop || forecast.length === 0) return null;
 
     // Calculate days since sowing (only if monitoring and date exists)
     let days = null;
@@ -39,28 +40,53 @@ function Dashboard() {
     const advice = [];
     const analysis = [];
 
-    // Weather analysis
-    if (weather.temp > 35) analysis.push("High temperature → Heat stress risk ⚠️");
-    else if (weather.temp >= 20 && weather.temp <= 32)
-      analysis.push("Temperature is suitable for crop growth ✅");
+    // Forecast-based trend
+    let avgTempForecast = null;
+    if (forecast.length > 0) {
+      avgTempForecast =
+        forecast.reduce((sum, d) => sum + d.avgTemp, 0) / forecast.length;
+    }
 
-    if (weather.humidity < 40) analysis.push("Low humidity → Water stress risk ⚠️");
-    else if (weather.humidity > 70) analysis.push("High humidity → Disease risk ⚠️");
+    // Forecast-based humidity trend
+    let avgHumidityForecast = null;
+    if (forecast.length > 0) {
+      avgHumidityForecast =
+        forecast.reduce((sum, d) => sum + d.avgHumidity, 0) / forecast.length;
+    }
+
+    // Weather analysis
+    if (avgTempForecast && avgTempForecast > 35) {
+      analysis.push("High temperature trend (next days) → Heat stress risk ⚠️");
+    } else if (avgTempForecast >= 20 && avgTempForecast <= 32) {
+      analysis.push("Temperature is suitable for crop growth ✅");
+    }
+
+    if (avgHumidityForecast && avgHumidityForecast < 40) {
+      analysis.push("Low humidity trend (next days) → Water stress risk ⚠️");
+    } else if (avgHumidityForecast && avgHumidityForecast > 70) {
+      analysis.push("High humidity trend (next days) → Disease risk ⚠️");
+    }
 
     // Crop-specific logic
     if (crop === "Rice") {
-      if (weather.humidity < 40) {
+      if (avgTempForecast > 35 && avgHumidityForecast < 40) {
+        advice.push("High heat + low humidity → urgent irrigation required 🚨");
+      } else if (avgHumidityForecast < 40) {
         advice.push("Increase irrigation / maintain standing water in field");
       }
+
       if (stage.includes("Vegetative")) {
         advice.push("Apply nitrogen fertilizer (urea)");
       }
     }
 
     if (crop === "Wheat") {
-      if (weather.temp > 30) {
-        advice.push("High temperature may affect wheat yield");
+      if (avgTempForecast > 30 && avgHumidityForecast < 40) {
+        advice.push("High heat + dry conditions → risk to wheat yield ⚠️");
+      } else if (avgTempForecast > 30) {
+        advice.push("High temperature trend may affect wheat yield");
       }
+
       if (stage.includes("Vegetative")) {
         advice.push("Apply urea fertilizer for better growth");
       }
@@ -68,6 +94,8 @@ function Dashboard() {
 
     return { days, stage, advice, analysis };
   };
+
+  const rec = getRecommendation();
 
   return (
     <div>
@@ -77,7 +105,7 @@ function Dashboard() {
         </p>
       )}
 
-      {weather && (
+      {forecast.length > 0 && (
         <div style={{ padding: "20px" }}>
           <h2>Weather Information</h2>
           <h3 style={{ marginTop: "16px" }}>Selected Advisory Inputs</h3>
@@ -87,32 +115,38 @@ function Dashboard() {
           <p>Advisory Mode: {advisoryMode || "Not selected"}</p>
           <p>Sowing Date: {sowingDate || "Not Applicable"}</p>
 
-          <h3 style={{ marginTop: "16px" }}>Current Weather</h3>
-          <p>Temperature: {weather.temp} °C</p>
-          <p>Humidity: {weather.humidity} %</p>
-          <p>Wind Speed: {weather.windSpeed} m/s</p>
-          <p>Condition: {weather.condition}</p>
+          <h3 style={{ marginTop: "16px" }}>Average Forecast (Used as Current)</h3>
           <p>
-            Location: {weather.city}, {weather.country}
+            Temperature:{" "}
+            {(forecast.reduce((sum, d) => sum + d.avgTemp, 0) / forecast.length).toFixed(1)} °C
+          </p>
+          <p>
+            Humidity:{" "}
+            {(forecast.reduce((sum, d) => sum + d.avgHumidity, 0) / forecast.length).toFixed(1)} %
           </p>
 
-          {getRecommendation() && (
+          <h3 style={{ marginTop: "16px" }}>Upcoming Temperature Trend</h3>
+          {forecast.slice(0, 5).map((d, i) => (
+            <p key={i}>{d.date}: {d.avgTemp.toFixed(1)} °C</p>
+          ))}
+
+          {rec && (
             <div style={{ marginTop: "20px" }}>
               <h3>Crop Analysis & Recommendation</h3>
 
-              <p>Stage: {getRecommendation().stage}</p>
-              {getRecommendation().days !== null && (
-                <p>Days since sowing: {getRecommendation().days}</p>
+              <p>Stage: {rec.stage}</p>
+              {rec.days !== null && (
+                <p>Days since sowing: {rec.days}</p>
               )}
 
               <h4>Weather Impact</h4>
-              {getRecommendation().analysis.map((item, idx) => (
+              {rec.analysis.map((item, idx) => (
                 <p key={idx}>- {item}</p>
               ))}
 
               <h4>Recommended Actions</h4>
-              {getRecommendation().advice.length > 0 ? (
-                getRecommendation().advice.map((item, idx) => (
+              {rec.advice.length > 0 ? (
+                rec.advice.map((item, idx) => (
                   <p key={idx}>- {item}</p>
                 ))
               ) : (
